@@ -1,76 +1,140 @@
-import * as anchor from '@coral-xyz/anchor'
-import {Program} from '@coral-xyz/anchor'
-import {Keypair} from '@solana/web3.js'
-import {Journal} from '../target/types/journal'
+import * as anchor from '@coral-xyz/anchor';
+import { Program } from '@coral-xyz/anchor';
+import { Keypair } from '@solana/web3.js';
+import { Journal } from '../target/types/journal';
 
 describe('journal', () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
-  const payer = provider.wallet as anchor.Wallet
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+  const payer = provider.wallet as anchor.Wallet;
+  const program = anchor.workspace.Journal as Program<Journal>;
 
-  const program = anchor.workspace.Journal as Program<Journal>
+  const title = "My Journal Entry";
+  const message = "This is my first journal entry.";
 
-  const journalKeypair = Keypair.generate()
+  // Generate a deterministic keypair for the journal entry account.
+  const [journalEntryPubkey, bump] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(title), payer.publicKey.toBuffer()],
+    program.programId
+  );
 
-  it('Initialize Journal', async () => {
+  it('Creates a new journal entry', async () => {
     await program.methods
-      .initialize()
+      .createEntry(title, message)
       .accounts({
-        journal: journalKeypair.publicKey,
-        payer: payer.publicKey,
-      })
-      .signers([journalKeypair])
-      .rpc()
+        journalEntry: journalEntryPubkey,
+        owner: payer.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      } as any)
+      .rpc();
 
-    const currentCount = await program.account.journal.fetch(journalKeypair.publicKey)
+    const journalEntry = await program.account.journalEntryState.fetch(journalEntryPubkey);
+    expect(journalEntry.owner.toBase58()).toEqual(payer.publicKey.toBase58());
+    expect(journalEntry.title).toEqual(title);
+    expect(journalEntry.message).toEqual(message);
+  });
 
-    expect(currentCount.count).toEqual(0)
-  })
+  it('Updates the journal entry message', async () => {
+    const newMessage = "This is the updated journal entry message.";
 
-  it('Increment Journal', async () => {
-    await program.methods.increment().accounts({ journal: journalKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.journal.fetch(journalKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(1)
-  })
-
-  it('Increment Journal Again', async () => {
-    await program.methods.increment().accounts({ journal: journalKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.journal.fetch(journalKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(2)
-  })
-
-  it('Decrement Journal', async () => {
-    await program.methods.decrement().accounts({ journal: journalKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.journal.fetch(journalKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(1)
-  })
-
-  it('Set journal value', async () => {
-    await program.methods.set(42).accounts({ journal: journalKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.journal.fetch(journalKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(42)
-  })
-
-  it('Set close the journal account', async () => {
     await program.methods
-      .close()
+      .updateEntry(title, newMessage)
       .accounts({
-        payer: payer.publicKey,
-        journal: journalKeypair.publicKey,
-      })
-      .rpc()
+        journalEntry: journalEntryPubkey,
+        owner: payer.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      } as any)
+      .rpc();
 
-    // The account should no longer exist, returning null.
-    const userAccount = await program.account.journal.fetchNullable(journalKeypair.publicKey)
-    expect(userAccount).toBeNull()
-  })
-})
+    const journalEntry = await program.account.journalEntryState.fetch(journalEntryPubkey);
+    expect(journalEntry.message).toEqual(newMessage);
+  });
+
+  it('Deletes the journal entry', async () => {
+    await program.methods
+      .deleteJournalEntry(title)
+      .accounts({
+        journalEntry: journalEntryPubkey,
+        owner: payer.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    const journalEntry = await program.account.journalEntryState.fetchNullable(journalEntryPubkey);
+    expect(journalEntry).toBeNull();
+  });
+
+  it('Fails to create an entry with an empty title', async () => {
+    const invalidTitle = ""; // Empty title
+    const message = "This should fail.";
+  
+    await expect(async () => {
+      await program.methods
+        .createEntry(invalidTitle, message)
+        .accounts({
+          journalEntry: journalEntryPubkey,
+          owner: payer.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        } as any)
+        .rpc();
+    }).rejects.toThrow(); // Expect an error
+  });
+
+  
+  it('Fails to update a non-existent entry', async () => {
+    const title = "NonExistentEntry";
+    const newMessage = "Attempting to update a non-existent entry.";
+  
+    const [nonExistentPubkey, bump] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from(title), payer.publicKey.toBuffer()],
+      program.programId
+    );
+  
+    await expect(async () => {
+      await program.methods
+        .updateEntry(title, newMessage)
+        .accounts({
+          journalEntry: nonExistentPubkey,
+          owner: payer.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        } as any)
+        .rpc();
+    }).rejects.toThrow(); // Expect an error
+  });
+
+  
+  it('Fails to delete an entry without ownership', async () => {
+    const maliciousUser = anchor.web3.Keypair.generate(); // Simulate another user
+    const title = "EntryToDelete";
+  
+    const [entryPubkey, bump] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from(title), payer.publicKey.toBuffer()],
+      program.programId
+    );
+  
+    // Ensure the entry exists by creating it first
+    await program.methods
+      .createEntry(title, "This entry will be targeted for unauthorized deletion.")
+      .accounts({
+        journalEntry: entryPubkey,
+        owner: payer.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      } as any)
+      .rpc();
+  
+    // Malicious user tries to delete the entry
+    await expect(async () => {
+      await program.methods
+        .deleteJournalEntry(title)
+        .accounts({
+          journalEntry: entryPubkey,
+          owner: maliciousUser.publicKey, // Incorrect owner
+          systemProgram: anchor.web3.SystemProgram.programId,
+        } as any)
+        .signers([maliciousUser])
+        .rpc();
+    }).rejects.toThrow(); // Expect an error
+  });
+  
+
+});

@@ -1,0 +1,140 @@
+
+.journal-container {
+    font-family: 'Inter', sans-serif;
+    color: #1a1a1a; 
+    background-color: #f9fafb; 
+    padding: 20px;
+    border-radius: 8px;
+    width: 100vw;
+  }
+  
+  .journal-container .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 20px auto;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .journal-container .form-container input,
+  .journal-container .form-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #000000;  
+    background-color: #f8f9fa; 
+  }
+  
+  .journal-container .form-container input:focus,
+  .journal-container .form-container textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+    outline: none;
+  }
+  
+  .journal-container .form-container button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff; 
+    background-color: #2563eb; 
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .journal-container .form-container button:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .journal-container .form-container button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .journal-container .grid {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .journal-container .grid.md\\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .journal-container .card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .journal-container .card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: rgb(0, 52, 163); 
+  }
+
+  .journal-container .card-message {
+    color: rgb(0, 0, 0); 
+  }
+  
+  .journal-container .card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .journal-container .alert {
+    padding: 16px;
+    border: 1px solid #fcd34d;
+    background-color: #fef3c7; 
+    color: #92400e; 
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 16px;
+  }
+  
+  .journal-container .btn-primary {
+    background-color: #10b981;
+    color: #ffffff;
+  }
+  
+  .journal-container .btn-primary:hover {
+    background-color: #059669;
+  }
+  
+  .journal-container .btn-secondary {
+    background-color: #ef4444;
+    color: #ffffff;
+  }
+  
+  .journal-container .btn-secondary:hover {
+    background-color: #dc2626;
+  }
+  
+  .journal-container .update-container input,
+  .journal-container .update-container textarea {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #000000;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #3a3a3a;
+    background-color: #f8f9fa;
+  }

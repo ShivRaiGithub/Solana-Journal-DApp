@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/journal.json`.
  */
 export type Journal = {
-  "address": "AsjZ3kWAUSQRNt2pZVeJkywhZ6gpLpHZmJjduPmKZDZZ",
+  "address": "HkVCcQQU9EshkHGqewWsayEWVQ2pvUr3mENjKeJj3d1p",
   "metadata": {
     "name": "journal",
     "version": "0.1.0",
@@ -14,90 +14,36 @@ export type Journal = {
   },
   "instructions": [
     {
-      "name": "close",
+      "name": "createEntry",
       "discriminator": [
-        98,
-        165,
-        201,
-        177,
-        108,
-        65,
-        206,
-        96
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "journal",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "decrement",
-      "discriminator": [
-        106,
-        227,
-        168,
-        59,
         248,
-        27,
+        207,
+        142,
+        242,
+        66,
+        162,
         150,
-        101
+        16
       ],
       "accounts": [
         {
-          "name": "journal",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "increment",
-      "discriminator": [
-        11,
-        18,
-        104,
-        9,
-        104,
-        174,
-        59,
-        33
-      ],
-      "accounts": [
-        {
-          "name": "journal",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "payer",
+          "name": "journalEntry",
           "writable": true,
-          "signer": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "title"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
         },
         {
-          "name": "journal",
+          "name": "owner",
           "writable": true,
           "signer": true
         },
@@ -106,58 +52,150 @@ export type Journal = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
     },
     {
-      "name": "set",
+      "name": "deleteJournalEntry",
       "discriminator": [
-        198,
-        51,
-        53,
-        241,
-        116,
-        29,
-        126,
-        194
+        156,
+        50,
+        93,
+        5,
+        157,
+        97,
+        188,
+        114
       ],
       "accounts": [
         {
-          "name": "journal",
-          "writable": true
+          "name": "journalEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "title"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "value",
-          "type": "u8"
+          "name": "title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "updateEntry",
+      "discriminator": [
+        70,
+        47,
+        181,
+        2,
+        1,
+        40,
+        2,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "journalEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "title"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "newMessage",
+          "type": "string"
         }
       ]
     }
   ],
   "accounts": [
     {
-      "name": "journal",
+      "name": "journalEntryState",
       "discriminator": [
-        255,
-        176,
-        4,
-        245,
-        188,
-        253,
+        113,
+        86,
+        110,
         124,
-        25
+        140,
+        14,
+        58,
+        66
       ]
     }
   ],
   "types": [
     {
-      "name": "journal",
+      "name": "journalEntryState",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "count",
-            "type": "u8"
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "entryId",
+            "type": "u64"
           }
         ]
       }
